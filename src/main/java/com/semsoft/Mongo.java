@@ -27,9 +27,25 @@ public class Mongo {
             String mongoURI = args[0];
             String csvToRead = args[1];
 
+            String engineName = "bulk";
+            if (args.length >= 3) {
+                engineName = args[2];
+            }
+
             LOGGER.info("Chargement du fichier {} dans Mongo {}.", csvToRead, mongoURI);
 
-            MongoWriter mongoWriter = new MongoWriterImpl(mongoURI);
+            MongoWriter mongoWriter;
+            if (engineName.equalsIgnoreCase("bulk")) {
+                mongoWriter = new MongoBulkWriterImpl(mongoURI);
+            } else if (engineName.equalsIgnoreCase("many")) {
+                mongoWriter = new MongoManyWriterImpl(mongoURI);
+            } else {
+                System.out.println("Pas de moteur sélectionné");
+                System.exit(-1);
+                return;
+            }
+            LOGGER.info("Test avec le moteur {}", mongoWriter.getClass().getName());
+
             MongoCollection<Document> mongoCollection = mongoWriter.createCollection();
             mongoWriter.createIndexs(mongoCollection);
 

@@ -12,6 +12,6 @@ public class MongoTest {
     @Ignore
     @Test
     public void test() throws IOException, URISyntaxException {
-        Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("test.csv").toURI().getPath()});
+        Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("test.csv").toURI().getPath(), "many"});
     }
 }

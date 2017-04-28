@@ -16,15 +16,15 @@ import java.util.List;
  * MongoWriterImpl
  * Created by breynard on 28/04/17.
  */
-public class MongoWriterImpl implements MongoWriter {
+public class MongoManyWriterImpl implements MongoWriter {
 
     private final MongoClient mongoClient;
-    private final BulkWriteOptions bulkWriteOptions;
+    private final InsertManyOptions insertManyOptions;
 
-    public MongoWriterImpl(String mongoURI) {
+    public MongoManyWriterImpl(String mongoURI) {
         super();
         mongoClient = buildMongoClient(mongoURI);
-        bulkWriteOptions = getBulkWriteOptions();
+        insertManyOptions = getInsertManyOptions();
     }
 
     private static Document convertRowToMongoDocument(List<String> row) {
@@ -37,9 +37,9 @@ public class MongoWriterImpl implements MongoWriter {
         return document;
     }
 
-    private static BulkWriteOptions getBulkWriteOptions() {
+    private static InsertManyOptions getInsertManyOptions() {
         // Attention, le bypassDocumentValidation avec le writeConcern nécessite un Mongo 3.4 à priori ...
-        return new BulkWriteOptions()/*.bypassDocumentValidation(true)*/.ordered(false);
+        return new InsertManyOptions()/*.bypassDocumentValidation(true)*/.ordered(false);
     }
 
     private static MongoClient buildMongoClient(String mongoURI) {
@@ -87,12 +87,12 @@ public class MongoWriterImpl implements MongoWriter {
 
     @Override
     public void writeRowsToMongo(MongoCollection<Document> collection, List<List<String>> rows) {
-        List<WriteModel<Document>> bulkWrite = new ArrayList<>(rows.size());
+        List<Document> documents = new ArrayList<>(rows.size());
         for (List<String> row : rows) {
             Document document = convertRowToMongoDocument(row);
-            bulkWrite.add(new InsertOneModel<>(document));
+            documents.add(document);
         }
 
-        collection.bulkWrite(bulkWrite, bulkWriteOptions);
+        collection.insertMany(documents, insertManyOptions);
     }
 }
