@@ -3,6 +3,7 @@ package com.semsoft;
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.bson.Document;
@@ -58,7 +59,17 @@ public class MongoManyWriterImpl implements MongoWriter {
 
     @Override
     public MongoCollection<Document> createCollection() {
-        mongoClient.dropDatabase(DATABASE_NAME);
+        boolean databaseAlreadyExist = false;
+        MongoIterable<String> databaseNames = mongoClient.listDatabaseNames();
+        for (String databaseName : databaseNames) {
+            if (databaseName.equals(DATABASE_NAME)) {
+                databaseAlreadyExist = true;
+                break;
+            }
+        }
+        if (databaseAlreadyExist) {
+            mongoClient.dropDatabase(DATABASE_NAME);
+        }
         MongoDatabase testDatabase = mongoClient.getDatabase(DATABASE_NAME);
 
         MongoCollection<Document> collection = testDatabase.getCollection(COLLECTION_NAME);
