@@ -14,4 +14,11 @@ public class MongoTest {
     public void test() throws IOException, URISyntaxException {
         Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("test.csv").toURI().getPath(), "many"});
     }
+
+
+    @Ignore
+    @Test
+    public void testAstria() throws IOException, URISyntaxException {
+        Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("astria.csv").toURI().getPath(), "many"});
+    }
 }

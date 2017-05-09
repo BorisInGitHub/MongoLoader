@@ -3,6 +3,7 @@ package com.semsoft;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
+import javax.xml.crypto.Data;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public interface MongoWriter {
 
     MongoCollection<Document> createCollection();
 
-    void createIndexs(MongoCollection<Document> collection);
+    void createIndexs(MongoCollection<Document> collection, DataProcessor dataProcessor);
 
-    void writeRowsToMongo(MongoCollection<Document> collection, List<List<String>> rows);
+    void writeRowsToMongo(MongoCollection<Document> collection, List<List<String>> rows, DataProcessor dataProcessor);
 }

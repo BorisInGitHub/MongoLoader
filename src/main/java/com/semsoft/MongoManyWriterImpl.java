@@ -89,18 +89,20 @@ public class MongoManyWriterImpl implements MongoWriter {
     }
 
     @Override
-    public void createIndexs(MongoCollection<Document> collection) {
-        // Ajout des indexs (sur la colonne 0 par défaut), on pourrait en rajouer d'autres d'ailleurs
-        collection.createIndex(
-                new BasicDBObject("0", 1),
-                new IndexOptions().unique(false));
+    public void createIndexs(MongoCollection<Document> collection, DataProcessor dataProcessor) {
+        for (String columnName : dataProcessor.columsWithIndex()) {
+            // Ajout des indexs (sur la colonne 0 par défaut), on pourrait en rajouer d'autres d'ailleurs
+            collection.createIndex(
+                    new BasicDBObject(columnName, 1),
+                    new IndexOptions().unique(false));
+        }
     }
 
     @Override
-    public void writeRowsToMongo(MongoCollection<Document> collection, List<List<String>> rows) {
+    public void writeRowsToMongo(MongoCollection<Document> collection, List<List<String>> rows, DataProcessor dataProcessor) {
         List<Document> documents = new ArrayList<>(rows.size());
         for (List<String> row : rows) {
-            Document document = convertRowToMongoDocument(row);
+            Document document = convertRowToMongoDocument(dataProcessor.keepUsedColumns(row));
             documents.add(document);
         }
 

@@ -46,8 +46,21 @@ public class Mongo {
             }
             LOGGER.info("Test avec le moteur {}", mongoWriter.getClass().getName());
 
+            String dataProc = "empty";
+            if (args.length >= 4) {
+                dataProc = args[3];
+            }
+            DataProcessor dataProcessor;
+            if (dataProc.equalsIgnoreCase("astria")) {
+                dataProcessor = new AstriaDataProcessor();
+            } else {
+                dataProcessor = new EmptyDataProcessor();
+            }
+            LOGGER.info("Test avec le moteur {}", dataProcessor.getClass().getName());
+
+
             MongoCollection<Document> mongoCollection = mongoWriter.createCollection();
-            mongoWriter.createIndexs(mongoCollection);
+            mongoWriter.createIndexs(mongoCollection, dataProcessor);
 
             int nbLines = 0;
             long start = System.currentTimeMillis();
@@ -68,7 +81,7 @@ public class Mongo {
 
                             if (read != null) {
                                 if (rows.size() == capacity) {
-                                    mongoWriter.writeRowsToMongo(mongoCollection, rows);
+                                    mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
                                     rows.clear();
                                 }
                                 rows.add(read);
@@ -79,7 +92,7 @@ public class Mongo {
                 }
             }
             if (!rows.isEmpty()) {
-                mongoWriter.writeRowsToMongo(mongoCollection, rows);
+                mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
                 rows.clear();
             }
             long duration = System.currentTimeMillis() - start;
