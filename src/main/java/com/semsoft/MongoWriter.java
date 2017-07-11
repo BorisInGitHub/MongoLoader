@@ -15,4 +15,6 @@ public interface MongoWriter<Collection> {
     void createIndexs(Collection collection, DataProcessor dataProcessor);
 
     void writeRowsToMongo(Collection collection, List<List<String>> rows, DataProcessor dataProcessor);
+
+    void close();
 }

@@ -46,8 +46,9 @@ public class MongoAsyncWriterImpl implements MongoWriter<com.mongodb.async.clien
     }
 
     private MongoClient buildMongoClient(String mongoURI) {
+//        ConnectionString connectionString = new ConnectionString(mongoURI);
         ClusterSettings clusterSettings = ClusterSettings.builder()
-                .hosts(asList(new ServerAddress(mongoURI)))
+                .hosts(asList(new ServerAddress("localhost", 27017)))
                 .build();
 
         return MongoClients.create(MongoClientSettings.builder()
@@ -55,6 +56,11 @@ public class MongoAsyncWriterImpl implements MongoWriter<com.mongodb.async.clien
                 .applicationName("Test Async")
                 .writeConcern(WriteConcern.ACKNOWLEDGED)
                 .build());
+    }
+
+    @Override
+    public void close() {
+        mongoClient.close();
     }
 
     @Override

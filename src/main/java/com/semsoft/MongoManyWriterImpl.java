@@ -57,6 +57,11 @@ public class MongoManyWriterImpl implements MongoWriter<MongoCollection<Document
     }
 
     @Override
+    public void close() {
+        mongoClient.close();
+    }
+
+    @Override
     public MongoCollection<Document> createCollection() {
 //        boolean databaseAlreadyExist = false;
 //        MongoIterable<String> databaseNames = mongoClient.listDatabaseNames();

@@ -32,71 +32,77 @@ public class Mongo {
 
             LOGGER.info("Chargement du fichier {} dans Mongo {}.", csvToRead, mongoURI);
 
-            MongoWriter mongoWriter;
-            if (engineName.equalsIgnoreCase("bulk")) {
-                mongoWriter = new MongoBulkWriterImpl(mongoURI);
-            } else if (engineName.equalsIgnoreCase("many")) {
-                mongoWriter = new MongoManyWriterImpl(mongoURI);
-            } else if (engineName.equalsIgnoreCase("async")) {
-                mongoWriter = new MongoAsyncWriterImpl(mongoURI);
-            } else {
-                System.out.println("Pas de moteur sélectionné");
-                System.exit(-1);
-                return;
-            }
-            LOGGER.info("Test avec le moteur {}", mongoWriter.getClass().getName());
-
-            String dataProc = "empty";
-            if (args.length >= 4) {
-                dataProc = args[3];
-            }
-            DataProcessor dataProcessor;
-            if (dataProc.equalsIgnoreCase("astria")) {
-                dataProcessor = new AstriaDataProcessor();
-            } else {
-                dataProcessor = new EmptyDataProcessor();
-            }
-            LOGGER.info("Test avec le moteur {}", dataProcessor.getClass().getName());
-
-
-            Object mongoCollection = mongoWriter.createCollection();
-            mongoWriter.createIndexs(mongoCollection, dataProcessor);
-
             int nbLines = 0;
-            long start = System.currentTimeMillis();
-            // Lecture des données
-            int capacity = 1000;
-            List<List<String>> rows = new ArrayList<>(capacity);
-            try (FileInputStream inputStream = new FileInputStream(csvToRead)) {
-                try (InputStreamReader inputStreamReader = new InputStreamReader(new BufferedInputStream(inputStream), StandardCharsets.UTF_8)) {
-                    try (CsvListReader csvListReader = new CsvListReader(inputStreamReader, buildCsvPreference())) {
-                        List<String> read = csvListReader.read();
-                        // La première ligne est les headers
-                        if (read == null || read.size() <= 0) {
-                            // Au moins un header et une colonne dans le fichier
-                            throw new RuntimeException("No header or no column");
-                        }
-                        while (read != null) {
-                            read = csvListReader.read();
+            long duration;
+            MongoWriter mongoWriter = null;
+            try {
+                if (engineName.equalsIgnoreCase("bulk")) {
+                    mongoWriter = new MongoBulkWriterImpl(mongoURI);
+                } else if (engineName.equalsIgnoreCase("many")) {
+                    mongoWriter = new MongoManyWriterImpl(mongoURI);
+                } else if (engineName.equalsIgnoreCase("async")) {
+                    mongoWriter = new MongoAsyncWriterImpl(mongoURI);
+                } else {
+                    System.out.println("Pas de moteur sélectionné");
+                    System.exit(-1);
+                    return;
+                }
+                LOGGER.info("Test avec le moteur {}", mongoWriter.getClass().getName());
 
-                            if (read != null) {
-                                if (rows.size() == capacity) {
-                                    mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
-                                    rows.clear();
+                String dataProc = "empty";
+                if (args.length >= 4) {
+                    dataProc = args[3];
+                }
+                DataProcessor dataProcessor;
+                if (dataProc.equalsIgnoreCase("astria")) {
+                    dataProcessor = new AstriaDataProcessor();
+                } else {
+                    dataProcessor = new EmptyDataProcessor();
+                }
+                LOGGER.info("Test avec le moteur {}", dataProcessor.getClass().getName());
+
+
+                Object mongoCollection = mongoWriter.createCollection();
+                mongoWriter.createIndexs(mongoCollection, dataProcessor);
+
+                long start = System.currentTimeMillis();
+                // Lecture des données
+                int capacity = 1000;
+                List<List<String>> rows = new ArrayList<>(capacity);
+                try (FileInputStream inputStream = new FileInputStream(csvToRead)) {
+                    try (InputStreamReader inputStreamReader = new InputStreamReader(new BufferedInputStream(inputStream), StandardCharsets.UTF_8)) {
+                        try (CsvListReader csvListReader = new CsvListReader(inputStreamReader, buildCsvPreference())) {
+                            List<String> read = csvListReader.read();
+                            // La première ligne est les headers
+                            if (read == null || read.size() <= 0) {
+                                // Au moins un header et une colonne dans le fichier
+                                throw new RuntimeException("No header or no column");
+                            }
+                            while (read != null) {
+                                read = csvListReader.read();
+
+                                if (read != null) {
+                                    if (rows.size() == capacity) {
+                                        mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
+                                        rows.clear();
+                                    }
+                                    rows.add(read);
+                                    nbLines++;
                                 }
-                                rows.add(read);
-                                nbLines++;
                             }
                         }
                     }
                 }
+                if (!rows.isEmpty()) {
+                    mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
+                    rows.clear();
+                }
+                duration = System.currentTimeMillis() - start;
+            } finally {
+                if (mongoWriter != null) {
+                    mongoWriter.close();
+                }
             }
-            if (!rows.isEmpty()) {
-                mongoWriter.writeRowsToMongo(mongoCollection, rows, dataProcessor);
-                rows.clear();
-            }
-            long duration = System.currentTimeMillis() - start;
-
             LOGGER.info("Pour insérer {} lignes on a mis {} ms.", nbLines, duration);
             System.exit(0);
         } else {
