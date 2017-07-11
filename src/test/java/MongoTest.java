@@ -16,9 +16,18 @@ public class MongoTest {
     }
 
 
-    @Ignore
     @Test
-    public void testAstria() throws IOException, URISyntaxException {
+    public void testAstria_Many() throws IOException, URISyntaxException {
         Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("astria.csv").toURI().getPath(), "many", "astria"});
+    }
+
+    @Test
+    public void testAstria_Bulk() throws IOException, URISyntaxException {
+        Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("astria.csv").toURI().getPath(), "bulk", "astria"});
+    }
+
+    @Test
+    public void testAstria_Async() throws IOException, URISyntaxException {
+        Mongo.main(new String[]{"mongodb://localhost:27017/", getClass().getResource("astria.csv").toURI().getPath(), "async", "astria"});
     }
 }

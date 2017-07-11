@@ -16,7 +16,7 @@ import java.util.List;
  * MongoWriterImpl
  * Created by breynard on 28/04/17.
  */
-public class MongoBulkWriterImpl implements MongoWriter {
+public class MongoBulkWriterImpl implements MongoWriter<MongoCollection<Document>> {
 
     private final MongoClient mongoClient;
     private final BulkWriteOptions bulkWriteOptions;

@@ -1,7 +1,5 @@
 package com.semsoft;
 
-import com.mongodb.client.MongoCollection;
-import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.io.CsvListReader;
@@ -39,6 +37,8 @@ public class Mongo {
                 mongoWriter = new MongoBulkWriterImpl(mongoURI);
             } else if (engineName.equalsIgnoreCase("many")) {
                 mongoWriter = new MongoManyWriterImpl(mongoURI);
+            } else if (engineName.equalsIgnoreCase("async")) {
+                mongoWriter = new MongoAsyncWriterImpl(mongoURI);
             } else {
                 System.out.println("Pas de moteur sélectionné");
                 System.exit(-1);
@@ -59,7 +59,7 @@ public class Mongo {
             LOGGER.info("Test avec le moteur {}", dataProcessor.getClass().getName());
 
 
-            MongoCollection<Document> mongoCollection = mongoWriter.createCollection();
+            Object mongoCollection = mongoWriter.createCollection();
             mongoWriter.createIndexs(mongoCollection, dataProcessor);
 
             int nbLines = 0;
